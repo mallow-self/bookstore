@@ -10,6 +10,7 @@ class Book(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     isbn = models.CharField(max_length=13, unique=True)
     genre = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     published_date = models.DateField()
     stock_quantity = models.PositiveIntegerField(default=0)
     cover_image = models.ImageField(upload_to="book_covers/", null=True, blank=True)

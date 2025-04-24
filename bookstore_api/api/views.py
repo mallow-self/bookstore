@@ -17,6 +17,7 @@ from .serializers import (
     UserSerializer,
     RegisterSerializer,
 )
+from .permissions import IsOwnerOrReadOnly
 
 
 class RegisterView(generics.CreateAPIView):
@@ -38,8 +39,10 @@ class BookViewSet(viewsets.ModelViewSet):
     ordering_fields = ["title", "author", "price", "published_date"]
 
     def get_permissions(self):
-        if self.action in ["create", "update", "partial_update", "destroy"]:
-            permission_classes = [IsAdminUser]
+        if self.action in ["create"]:
+            permission_classes = [IsAuthenticated]
+        elif self.action in ["update", "partial_update", "destroy"]:
+            permission_classes = [IsOwnerOrReadOnly]
         else:
             permission_classes = [AllowAny]
         return [permission() for permission in permission_classes]
@@ -50,6 +53,9 @@ class BookViewSet(viewsets.ModelViewSet):
         reviews = book.reviews.all()
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

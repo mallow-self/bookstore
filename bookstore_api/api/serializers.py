@@ -52,6 +52,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class BookSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Book
@@ -63,6 +64,7 @@ class BookSerializer(serializers.ModelSerializer):
             "price",
             "isbn",
             "genre",
+            "user",
             "published_date",
             "stock_quantity",
             "cover_image",
@@ -76,6 +78,10 @@ class BookSerializer(serializers.ModelSerializer):
         if not reviews:
             return None
         return sum(review.rating for review in reviews) / len(reviews)
+
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
