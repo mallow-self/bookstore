@@ -96,6 +96,16 @@ class ReviewSerializer(serializers.ModelSerializer):
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
 
+    def validate(self, attrs):
+        request = self.context["request"]
+        user = request.user
+        book = attrs["book"]
+
+        if Review.objects.filter(book=book, user=user).exists():
+            raise serializers.ValidationError("You have already reviewed this book.")
+
+        return attrs
+
 
 class CartItemSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)

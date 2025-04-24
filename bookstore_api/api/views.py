@@ -70,7 +70,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ["update", "partial_update", "destroy"]:
-            return [IsAuthenticated()]  # Only the owner can update/delete their review
+            return [IsAuthenticated()] 
         return super().get_permissions()
 
     def perform_create(self, serializer):
