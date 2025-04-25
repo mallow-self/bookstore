@@ -150,11 +150,12 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Order.objects.filter(user=user)
 
     def perform_create(self, serializer):
+        print(self.request.user)
         serializer.save(user=self.request.user)
 
     def get_permissions(self):
-        if self.action in ["create", "list", "retrieve"]:
+        if self.action in ["create"]:
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [IsAdminUser]  # Only admins can update order status
+            permission_classes = [IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
