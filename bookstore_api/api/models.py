@@ -10,6 +10,7 @@ class Book(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     isbn = models.CharField(max_length=13, unique=True)
     genre = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     published_date = models.DateField()
     stock_quantity = models.PositiveIntegerField(default=0)
     cover_image = models.ImageField(upload_to="book_covers/", null=True, blank=True)
@@ -18,6 +19,9 @@ class Book(models.Model):
 
     def __str__(self):
         return f"{self.title} by {self.author}"
+    
+    class Meta:
+        ordering = ['created_at']
 
 
 class Cart(models.Model):
@@ -32,6 +36,9 @@ class Cart(models.Model):
     def total_price(self):
         return sum(item.total_price for item in self.items.all())
 
+    class Meta:
+        ordering = ["created_at"]
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
@@ -42,6 +49,7 @@ class CartItem(models.Model):
 
     class Meta:
         unique_together = ("cart", "book")
+        ordering = ["created_at"]
 
     def __str__(self):
         return f"{self.quantity} x {self.book.title} in {self.cart}"
@@ -70,6 +78,9 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
 
+    class Meta:
+        ordering = ["created_at"]
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
@@ -95,6 +106,7 @@ class Review(models.Model):
 
     class Meta:
         unique_together = ("book", "user")
+        ordering = ["created_at"]
 
     def __str__(self):
         return f"Review for {self.book.title} by {self.user.username}"

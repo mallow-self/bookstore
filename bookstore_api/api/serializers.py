@@ -52,6 +52,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class BookSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Book
@@ -63,6 +64,7 @@ class BookSerializer(serializers.ModelSerializer):
             "price",
             "isbn",
             "genre",
+            "user",
             "published_date",
             "stock_quantity",
             "cover_image",
@@ -77,6 +79,10 @@ class BookSerializer(serializers.ModelSerializer):
             return None
         return sum(review.rating for review in reviews) / len(reviews)
 
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -89,6 +95,16 @@ class ReviewSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        user = request.user
+        book = attrs["book"]
+
+        if Review.objects.filter(book=book, user=user).exists():
+            raise serializers.ValidationError("You have already reviewed this book.")
+
+        return attrs
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -157,6 +173,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
+        validated_data.pop("user", None)
         cart = Cart.objects.get(user=user)
 
         # Check if cart is empty
